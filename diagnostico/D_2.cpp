@@ -22,7 +22,16 @@ public:
     {
         return pass;
     }
+    void setName()
+    {
+    }
+    void setPass(string pass)
+    {
+        this->pass = pass;
+    }
 };
+
+void menu(User &user);
 
 int main()
 {
@@ -34,6 +43,8 @@ int main()
 
     do  
     {
+
+        cout << "\n\t\t\tInicio de sesion\n\n";
         cout << "Ingrese nombre de usuario: ";
         cin >> name;
         cout << "Ingrese contraseña de usuario: ";
@@ -42,11 +53,12 @@ int main()
         if ((name == user1.getName()) && (pass == user1.getPass()))
         {
             cout << "Bienvenido/a " << name << endl;
-            break;
+            menu(user1);
 
         }else if ((name == user2.getName()) && (pass == user2.getPass()))
         {
             cout << "Bienvenido/a " << name << endl;
+            menu(user2);
             break;
 
         }else 
@@ -63,4 +75,43 @@ int main()
     }
     
     return 0;
+}
+
+void menu(User &user)
+{
+    int option;
+    string pass;
+
+    do
+    {
+        cout << "\n\t\tMenu\n\n";
+        cout << "1. Cambiar contraseña\n";
+        cout << "2. Salir\n";
+        cout << "Ingrese su opcion: ";
+        cin >> option;
+
+        switch (option)
+        {
+                case 1:
+                    cout << "Ingrese nueva contraseña: ";
+                    cin  >> pass;
+                    user.setPass(pass);
+                    if (pass == user.getPass())
+                    {
+                        cout << "\nContraseña cambiada correctamente\n";
+                    }
+                    else{
+                        cout << "Error al cambiar la contraseña!\n";
+                    }
+                    break;
+
+                case 2:
+
+                cout << option;
+                    break;
+            
+            default:
+                cout << "\t\tOpcion no valida!\n";
+        }
+    }while (option != 1 && option != 2);
 }
