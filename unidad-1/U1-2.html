@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Unidad 1</title>
+
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+/*
+
+En el sistema del punto 1, una vez que el usuario ingresa satisfactoriamente (si sus credenciales de
+acceso son válidas) es recibido con un mensaje de bienvenida. Extienda el programa de modo tal que
+además del mensaje, pueda acceder a un menú de acciones etiquetado: ( 1. Cambiar contraseña. X. Salir
+). En la acción 1. el usuario podrá cambiar su contraseña efectivamente y con la acción 2, salir de esa
+sección y regresar al inicio del sistema en donde se preguntan por las credenciales.
+
+*/
+
+//BACKEND
+
+class APIModelAccess
+{
+	constructor()
+	{
+		this._authData = new Map();
+		this._maxLoginFailedAttempts = 3;
+		
+		let userData =
+		[
+			{
+				password: '987654',
+				failedLoginCounter: 0,
+				isLocked: false
+			},
+			{
+				password: '987654',
+				failedLoginCounter: 0,
+				isLocked: false
+			}
+		]
+
+		this._authData.set('scorpion', userData[0] );
+		this._authData.set('subZero', userData[1] );
+	}
+
+	isValidUserGetData( username )
+	{
+		return this._authData.get(username);
+	}
+
+	authenticateUser( username, password )
+	{
+		let api_return = 
+		{
+			status: false,
+			result: null
+		};
+
+
+		if ( (username != undefined && username != null && username != '') && (password != undefined && password != null && password != '') )
+		{
+			let userdata = this.isValidUserGetData(username);
+
+			if ( userdata.isLocked == false )
+			{
+				if( userdata.password === password )
+				{
+					api_return.status = true;
+				}
+				else
+				{
+					api_return.status = false;
+					api_return.result = 'USER_PASSWORD_FAILED';
+
+					userdata.failedLoginCounter++;
+					
+					if ( userdata.failedLoginCounter == this._maxLoginFailedAttempts )
+					{
+						userdata.isLocked = true;
+						api_return.status = false;
+						api_return.result = 'BLOCKED_USER';
+					}
+				}
+			}
+			else
+			{
+				api_return.status = false;
+				api_return.result = 'BLOCKED_USER';
+			}
+			
+		}
+		
+		return api_return;
+	}
+
+	changePassword(username, newPassword) 
+	{
+		let user = this._authData.get(username);
+		if (user) 
+		{
+			user.password = newPassword;
+			return true;
+		}
+
+		return false;
+	}
+
+	getMaxLoginAttempts()
+	{
+		return this._maxLoginFailedAttempts;
+	}
+
+}
+
+class LoginApplicationView
+{
+	constructor(apiInstanceObject)
+	{
+		this._api = apiInstanceObject;
+	}
+
+	show()
+	{
+		let username = window.prompt("Ingrese su nombre de usuario:");
+		let password = window.prompt("Ingrese contraseña:");
+
+		let api_return = this._api.authenticateUser( username, password );
+		
+		if ( api_return.status )
+		{
+			alert('Usuario autenticado exitosamente');
+		}
+		else if ( api_return.status == false )
+		{
+			switch ( api_return.result ) 
+			{
+				case 'BLOCKED_USER':
+					alert('Usuario bloqueado. Contacte al administrador');
+				break;
+
+				case 'USER_PASSWORD_FAILED':
+					alert('Usuario y/o contraseña incorrecta');
+				break;
+
+				default:
+					alert('Error desconocido');
+				break;
+			}
+		}
+
+		return { api_return, username };
+	}
+}
+
+class ChangePasswordApplicationView
+{
+	constructor(apiInstanceObject, username)
+	{
+		this._api = apiInstanceObject;
+		this._username = username;
+	}
+
+	show()
+	{
+		let newPassword = window.prompt("Ingrese nueva contraseña:");
+		if (this._api.changePassword(this._username, newPassword))
+		{
+			alert("Contraseña modificada correctamente");
+		}
+		else
+		{
+			alert("Error al cambiar la contraseña");
+		}
+	}
+}
+
+class Application
+{
+	constructor( apiInstanceObject )
+	{
+		this._api = apiInstanceObject;
+		this._defaultView = new LoginApplicationView(this._api);		
+		this._maxLoginFailedAttempts = this._api.getMaxLoginAttempts();
+		this._attempts = 0;
+		this._api_return = null;
+		this._username = null;
+	}
+
+	init()
+	{
+		const loginResult = this._defaultView.show();
+		this._api_return = loginResult.api_return;
+		this._username = loginResult.username;
+	}
+
+	run()
+	{
+		while( this._api_return.result == 'USER_PASSWORD_FAILED' && this._attempts < this._maxLoginFailedAttempts )
+		{
+			const loginResult = this._defaultView.show();
+			this._api_return = loginResult.api_return;
+			this._username = loginResult.username;
+
+			if ( this._api_return.result == 'USER_PASSWORD_FAILED' )
+			{
+				this._attempts++;
+			}
+		}
+		if (this._api_return.status)
+		{
+			this.showUserMenu();
+		}
+	}
+
+	showUserMenu()
+	{
+		let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\nx. Salir");
+
+		switch (option)
+		{
+			case '1':
+				let changeView = new ChangePasswordApplicationView(this._api, this._username);
+				changeView.show();
+				break;
+			case 'x':
+				this._attempts = 0; // resetear intentos
+				this.init(); // volver a la pantalla de login
+				this.run();
+				break;
+			default:
+				alert('Opción inválida');
+				this.showUserMenu(); // volver a mostrar menú
+		}
+	}
+}
+
+function main()
+{
+	let model = new APIModelAccess();
+	let app = new Application(model);
+
+	app.init();
+	app.run();
+
+}
+
+window.onload = main;
+
+
+</script>
+
+</html>

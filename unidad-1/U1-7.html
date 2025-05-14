@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<title>Unidad 1</title>
+
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+	
+/*
+
+Agregue la acción ( 5 = Comprar artículo ) para que los clientes puedan adquirir unidades de un
+determinado producto. La operación deberá realizarse sobre un producto válido, con stock > 0 y ofrecer
+una confirmación al efectuar la operación. Al terminar, el stock deberá verse afectado.
+
+*/
+
+//BACKEND
+
+
+class User 
+{
+	constructor(password) 
+	{
+		this.password = password;
+		this.failedLoginCounter = 0;
+		this.isLocked = false;
+	}
+
+	isPasswordCorrect(input) 
+	{
+		return this.password === input;
+	}
+
+	incrementFailedLogin(maxAttempts) 
+	{
+		this.failedLoginCounter++;
+		if (this.failedLoginCounter >= maxAttempts) 
+		{
+			this.isLocked = true;
+		}
+	}
+
+	changePassword(newPassword) 
+	{
+		this.password = newPassword;
+		this.failedLoginCounter = 0;
+		this.isLocked = false;
+	}
+}
+
+class Article
+{
+	constructor(name, price, stock)
+	{
+		this.name = name;
+		this.price = price;
+		this.stock = stock;
+	}
+}
+
+class APIModelAccess
+{
+	constructor()
+	{
+		this._userData = new Map();
+		this._articleData = new Map();
+		this._maxLoginFailedAttempts = 3;
+
+		this._userData.set('scorpion', new User('987654'));
+		this._userData.set('subZero', new User('987654'));
+		this._articleData.set('1', new Article("Lavandina x 1L", 875.25, 3000));
+		this._articleData.set('4', new Article("Detergente x 500mL", 1102.45, 2010));
+		this._articleData.set('22', new Article("Jabón en polvo x 250g", 650.22, 407));
+	}
+	
+	isValidUserGetData( username )
+	{
+		return this._userData.get(username);
+	}
+
+	authenticateUser(username, password) 
+	{
+		let api_return = 
+		{
+			status: false,
+			result: null
+		};
+
+		if (username && password) 
+		{
+			let user = this._userData.get(username);
+
+			if (user) {
+				if (!user.isLocked) 
+				{
+					if (user.isPasswordCorrect(password))
+					{
+						api_return.status = true;
+					} else 
+					{
+						user.incrementFailedLogin(this._maxLoginFailedAttempts);
+						api_return.status = false;
+						api_return.result = user.isLocked ? 'BLOCKED_USER' : 'USER_PASSWORD_FAILED';
+					}
+				} else 
+				{
+					api_return.result = 'BLOCKED_USER';
+				}
+			} else 
+			{
+				api_return.result = 'USER_NOT_FOUND';
+			}
+		}
+
+		return api_return;
+	}
+
+
+	changePassword(username, newPassword) 
+	{
+		let user = this._userData.get(username);
+		if (user) 
+		{
+			user.changePassword(newPassword);
+			return true;
+		}
+		return false;
+	}
+
+
+    validatePass(pass) 
+    {
+        let specialCounter = 0;
+        let hasUpper = false;
+        let hasDigit = false;
+
+        if (pass.length < 8 || pass.length > 16) 
+        {
+            return false;
+        }
+
+        for (let i = 0; i < pass.length; i++) 
+        {
+            const c = pass[i];
+
+            if (c >= 'A' && c <= 'Z') hasUpper = true;
+            if (c >= '0' && c <= '9') hasDigit = true;
+            if (!/[a-zA-Z0-9]/.test(c)) specialCounter++;
+        }
+
+        return hasUpper && hasDigit && specialCounter >= 2;
+    }
+
+	addUser(username, password) 
+	{
+		if (!this._userData.has(username)) 
+		{
+			this._userData.set(username, new User(password));
+			return { status: true };
+		} else 
+		{
+			return { status: false, result: 'USER_ALREADY_EXISTS' };
+		}
+	}
+
+
+	getMaxLoginAttempts()
+	{
+		return this._maxLoginFailedAttempts;
+	}
+
+    createArticle(id, name, price, stock) 
+    {
+        if (this._articleData.has(id)) 
+        {
+            return { success: false, message: "El ID ya existe." };
+        }
+        this._articleData.set(id, new Article(name, price, stock));
+        return { success: true, message: "Artículo agregado con éxito." }; // ← agregado
+    }
+
+    getArticle(id) {
+        return this._articleData.get(id);
+    }
+
+    updateArticle(id, name, price, stock) 
+    {
+        if (!this._articleData.has(id)) 
+        {
+            return { success: false, message: "Artículo no encontrado" };
+        }
+        this._articleData.set(id, new Article(name, price, stock));
+        return { success: true };
+    }
+
+    deleteArticle(id) 
+    {
+        if (!this._articleData.has(id)) {
+            return { success: false, message: "Artículo no encontrado" };
+        }
+        this._articleData.delete(id);
+        return { success: true };
+    }
+
+    getAllArticles() 
+    {
+        return Array.from(this._articleData.entries());
+    }
+
+	buyArticle(id, quantity) 
+	{
+		const article = this._articleData.get(id);
+
+		if (!article) 
+		{
+			return { success: false, message: "Artículo no encontrado." };
+		}
+
+		if (article.stock < quantity) 
+		{
+			return { success: false, message: "Stock insuficiente." };
+		}
+
+		article.stock -= quantity;
+
+		return {
+			success: true,
+			message: `Compra realizada con éxito. Quedan ${article.stock} unidades de "${article.name}".`
+		};
+	}
+}
+
+class LoginApplicationView
+{
+	constructor(apiInstanceObject)
+	{
+		this._api = apiInstanceObject;
+	}
+
+	show()
+	{
+		let username = window.prompt("Ingrese su nombre de usuario:");
+		let password = window.prompt("Ingrese contraseña:");
+
+		let api_return = this._api.authenticateUser( username, password );
+		
+		if ( api_return.status )
+		{
+			alert('Usuario autenticado exitosamente');
+		}
+		else if ( api_return.status == false )
+		{
+			switch ( api_return.result ) 
+			{
+				case 'BLOCKED_USER':
+					alert('Usuario bloqueado. Contacte al administrador');
+				break;
+
+				case 'USER_PASSWORD_FAILED':
+					alert('Usuario y/o contraseña incorrecta');
+				break;
+
+				default:
+					alert('Error desconocido');
+				break;
+			}
+		}
+
+		return { api_return, username };
+	}
+}
+
+class ChangePasswordApplicationView
+{
+	constructor(apiInstanceObject, username)
+	{
+		this._api = apiInstanceObject;
+		this._username = username;
+	}
+
+	show()
+	{
+		let newPassword = window.prompt("La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\nIngrese nueva contraseña:");
+        if (this._api.validatePass(newPassword))
+        {
+            if (this._api.changePassword(this._username, newPassword))
+            {
+                alert("Contraseña modificada correctamente");
+            }
+            else
+            {
+                alert("Error al cambiar la contraseña");
+            }
+        }
+        else
+        {
+            window.alert("Contraseña no valida!");
+            this.show();
+        }
+		
+	}
+}
+
+class AddUserAplicationView
+{
+	constructor(apiInstanceObject)
+	{
+		this._api = apiInstanceObject;
+	}
+
+	show()
+	{
+		let username = window.prompt("Ingrese nombre de usuario:");
+		let password = window.prompt("La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\nIngrese la contraseña:");
+
+		if (this._api.validatePass(password))
+		{
+			const api_return = this._api.addUser(username, password);
+
+			if (api_return.status) {
+				alert("Usuario creado exitosamente");
+			} else {
+				alert("El usuario ya existe");
+			}
+
+			return api_return;
+		}
+		else
+		{
+			alert("Contraseña no válida");
+			return this.show(); // Recursivamente vuelve a intentar
+		}
+	}
+}
+
+class ArticleManagementView 
+{
+	constructor(apiInstanceObject) 
+    {
+		this._api = apiInstanceObject;
+	}
+
+	show() 
+    {
+		let option = window.prompt(
+			"Gestión de artículos\n\n" +
+			"1. Ver todos los artículos\n" +
+			"2. Buscar artículo por ID\n" +
+			"3. Crear artículo\n" +
+			"4. Modificar artículo\n" +
+			"5. Eliminar artículo\n" +
+			"6. Comprar articulo\n\n" +
+			"7. Volver al menú principal\n\n" +
+			"Ingrese una opción:"
+		);
+
+		switch (option) 
+        {
+			case '1':
+            let articles = this._api.getAllArticles();
+            if (articles.length === 0) 
+            {
+                alert("No hay artículos cargados.");
+            } else 
+            {
+                let message = "Lista de artículos:\n";
+                for (let [id, art] of articles) 
+                {
+                    message += `ID: ${id}, Nombre: ${art.name}, Precio: ${art.price}, Stock: ${art.stock}\n`;
+                }
+                alert(message);
+            }
+
+				break;
+
+			case '2':
+				let idBuscar = window.prompt("Ingrese ID del artículo:");
+				let result = this._api.getArticle(idBuscar);
+				if (result) 
+                {
+					alert(`ID: ${idBuscar}\nNombre: ${result.name}\nPrecio: ${result.price}\nStock: ${result.stock}`);
+				} else 
+                {
+					alert("Artículo no encontrado.");
+				}
+				break;
+
+			case '3':
+                let newId = window.prompt("Ingrese nuevo ID:");
+                let newName = window.prompt("Ingrese nombre del artículo:");
+                
+                let newPrice = parseFloat(window.prompt("Ingrese precio:"));
+                if (isNaN(newPrice)) 
+                {
+                    alert("Precio inválido");
+                    this.show();
+                    break;
+                }
+
+                let newStock = parseInt(window.prompt("Ingrese stock:"));
+                if (isNaN(newStock)) 
+                {
+                    alert("Stock inválido");
+                    this.show();
+                    break;
+                }
+
+                let create = this._api.createArticle(newId, newName, newPrice, newStock);
+                alert(create.message);
+				break;
+
+			case '4':
+				let editId = window.prompt("Ingrese ID del artículo a modificar:");
+				let editName = window.prompt("Ingrese nuevo nombre:");
+				let editPrice = parseFloat(window.prompt("Ingrese nuevo precio:"));
+				let editStock = parseInt(window.prompt("Ingrese nuevo stock:"));
+				let update = this._api.updateArticle(editId, editName, editPrice, editStock);
+				if (update) {
+                    alert("Artículo modificado correctamente");
+                } else {
+                    alert("Artículo no encontrado");
+                }
+				break;
+
+			case '5':
+				let deleteId = window.prompt("Ingrese ID del artículo a eliminar:");
+				let deleted = this._api.deleteArticle(deleteId);
+                if (deleted) {
+                    alert("Artículo eliminado correctamente");
+                } else {
+                    alert("Artículo no encontrado");
+                }
+				break;
+
+			case '6':
+				let id = window.prompt("Ingrese ID del artículo que desea comprar:");
+				let quantity = parseInt(window.prompt("Ingrese la cantidad que desea comprar:"), 10);
+
+				if (isNaN(quantity) || quantity <= 0) 
+				{
+					alert("Cantidad inválida.");
+					this.show();
+				}
+
+				let resultBuy = this._api.buyArticle(id, quantity);
+				alert(resultBuy.message);
+				break;
+			case '7':
+				return; // Volver al menú principal
+
+			default:
+				alert("Opción inválida");
+				break;
+		}
+		this.show(); // Repetir menú después de cada acción
+	}
+}
+
+class Application
+{
+	constructor( apiInstanceObject )
+	{
+		this._api = apiInstanceObject;
+		this._defaultView = new LoginApplicationView(this._api);		
+		this._maxLoginFailedAttempts = this._api.getMaxLoginAttempts();
+		this._attempts = 0;
+		this._api_return = null;
+		this._username = null;
+	}
+
+	init()
+	{
+		const loginResult = this._defaultView.show();
+		this._api_return = loginResult.api_return;
+		this._username = loginResult.username;
+	}
+
+	run()
+	{
+		while( this._api_return.result == 'USER_PASSWORD_FAILED' && this._attempts < this._maxLoginFailedAttempts )
+		{
+			const loginResult = this._defaultView.show();
+			this._api_return = loginResult.api_return;
+			this._username = loginResult.username;
+
+			if ( this._api_return.result == 'USER_PASSWORD_FAILED' )
+			{
+				this._attempts++;
+			}
+		}
+		if (this._api_return.status)
+		{
+			this.showUserMenu();
+		}
+	}
+
+	showUserMenu()
+	{
+		let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\n2. Menu de Articulos\nx. Salir");
+
+		switch (option)
+		{
+			case '1':
+				let changeView = new ChangePasswordApplicationView(this._api, this._username);
+				changeView.show();
+				break;
+			case '2':
+				let articleView = new ArticleManagementView(this._api);
+                articleView.show();
+				break;
+			case 'x':
+				this._attempts = 0; // resetear intentos
+				this._api_return = null;
+				this._username = null;
+				break;
+			default:
+				alert('Opción inválida');
+				this.showUserMenu(); // volver a mostrar menú
+		}
+	}
+
+    showMenuMain()
+    {
+        let option = window.prompt("\t\tMenu principal\n1. Iniciar Sesion\n2. Crear Usuario");
+
+        switch (option)
+        {
+            case '1':
+				this.init();
+				this.run();
+				this.showMenuMain(); // volver al menú principal luego de cerrar sesión
+				break;
+            case '2':
+                let addView = new AddUserAplicationView(this._api);
+				addView.show();
+				this.showMenuMain();
+                break;
+            default:
+                alert('Opción inválida');
+                this.showMenuMain(); // volver a mostrar menú
+        }
+    }
+}
+
+function main()
+{
+	let model = new APIModelAccess();
+	let app = new Application(model);
+
+	app.showMenuMain();
+
+}
+
+window.onload = main;
+
+
+</script>
+
+</html>
