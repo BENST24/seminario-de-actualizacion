@@ -3,9 +3,169 @@ class ApplicationView
 	constructor(apiInstanceObject)
 	{
 		this._api = apiInstanceObject;
+        this._maxLoginFailedAttempts = this._api.getMaxLoginAttempts();
+		this._attempts = 0;
+		this._api_return = null;
+        this._username = null;
+	}    
+
+    showMenuMain()
+    {
+        let exit = false;
+        while(!exit)
+        {
+            let option = window.prompt("\t\tMenu principal\n1. Iniciar Sesion\nx. Salir");
+            
+            switch (option)
+            {
+                case '1':
+                    this.handleLoginAttempts();
+                    break;
+                case 'x':
+                    exit = true;
+                    break;
+                default:
+                    alert('Opción inválida');
+            }
+        }
+    }
+
+    showUserRoleMenu()
+	{
+        let user = this._api.isValidUserGetData(this._username);
+
+        if(user.category === 'administrador')
+        {
+            let exit = false;
+            while (!exit) 
+            {
+
+                let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\n2. Menu de Administrador\nx. Salir");
+
+                switch (option)
+                {
+                    case '1':
+                        this.ChangePasswordApplicationView(this._username);                      
+                        break;
+                    case '2':
+                        this.menuAdmin();
+                        break;
+                    case 'x':
+                        this._attempts = 0; // resetear intentos
+                        this._api_return = null;
+                        this._username = null;
+                        exit = true;
+                        break;
+                    default:
+                        alert('Opción inválida');
+                }
+            }
+        }else if(user.category === 'cliente')
+        {
+            let exit = false;
+            while (!exit) 
+            {
+                let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\n2. Menu de Cliente\nx. Salir");
+
+                switch (option)
+                {
+                    case '1':
+                        this.ChangePasswordApplicationView(this._username);
+                        break;
+                    case '2':
+                        this.menuCustomer();
+                        break;
+                    case 'x':
+                        this._attempts = 0; // resetear intentos
+                        this._api_return = null;
+                        this._username = null;
+                        this.showMenuMain(); 
+                        exit = true;
+                        break;
+                    default:
+                        alert('Opción inválida');
+                }
+            }
+        }else if(user.category === 'vendedor')
+        {
+            let exit = false;
+            while (!exit) 
+            {
+
+                let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\n2. Menu de Vendedor\nx. Salir");
+
+                switch (option)
+                {
+                    case '1':
+                        this.ChangePasswordApplicationView(this._username);
+                        break;
+                    case '2':
+                        this.menuSalesperson();
+                        break;
+                    case 'x':
+                        this._attempts = 0; // resetear intentos
+                        this._api_return = null;
+                        this._username = null;
+                        exit = true;
+                        break;
+                    default:
+                        alert('Opción inválida');
+                }
+            }
+        }else if(user.category === 'trabajador de deposito')
+        {
+            let exit = false;
+            while (!exit) 
+            {
+
+                let option = window.prompt("Bienvenido " + this._username + "\n\nMenú:\n1. Cambiar contraseña\n2. Menu de Trabajador de depósito\nx. Salir");
+
+                switch (option)
+                {
+                    case '1':
+                        this.ChangePasswordApplicationView(this._username);
+                        break;
+                    case '2':
+                        this.menuWarehouseWorker();
+                        break;
+                    case 'x':
+                        this._attempts = 0; // resetear intentos
+                        this._api_return = null;
+                        this._username = null;
+                        exit = true;
+                        break;
+                    default:
+                        alert('Opción inválida');
+                }
+            }
+        }
 	}
 
-	show()
+    handleLoginAttempts()
+    {
+        const loginResult = this.showMenuLogin()
+        this._api_return = loginResult.api_return;
+        this._username = loginResult.username;
+
+		while( this._api_return.result == 'USER_PASSWORD_FAILED' && this._attempts < this._maxLoginFailedAttempts )
+		{
+			this.loginResult = this.showMenuLogin();
+			// this._api_return = loginResult.api_return;
+            this._api_return = this.loginResult.api_return; // ← corregido
+            this._username = loginResult.username;
+
+			if ( this._api_return.result == 'USER_PASSWORD_FAILED' )
+			{
+				this._attempts++;
+			}
+		}
+		if (this._api_return.status)
+		{
+			this.showUserRoleMenu();
+		}
+    }
+
+	showMenuLogin()
 	{
 		let username = window.prompt("Ingrese su nombre de usuario:");
 		let password = window.prompt("Ingrese contraseña:");
@@ -39,66 +199,80 @@ class ApplicationView
 
     ChangePasswordApplicationView(username)
     {
-        let newPassword = window.prompt("La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\nIngrese nueva contraseña:");
-        if (this._api.validatePass(newPassword))
+        let exit = false;
+        while(!exit)
         {
-            if (this._api.changePassword(username, newPassword))
+
+            let newPassword = window.prompt("La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\nIngrese nueva contraseña:");
+            if (this._api.validatePass(newPassword))
             {
-                alert("Contraseña modificada correctamente");
+                if (this._api.changePassword(username, newPassword))
+                {
+                    alert("Contraseña modificada correctamente");
+                    exit = true;
+                }
+                else
+                {
+                    alert("Error al cambiar la contraseña");
+                    exit = true;
+                }
             }
             else
             {
-                alert("Error al cambiar la contraseña");
+                window.alert("Contraseña no valida!");
             }
-        }
-        else
-        {
-            window.alert("Contraseña no valida!");
-            this.show();
         }
     }
 
     selectCategory() 
     {
-        let option = window.prompt("Seleccione su categoría de usuario:\n1. Administrador\n2. Cliente\n3. Vendedor\n4. Trabajador de depósito");
-
-        switch (option) 
+        let exit = false;
+        while(!exit)
         {
-            case '1': return "administrador";
-            case '2': return "cliente";
-            case '3': return "vendedor";
-            case '4': return "trabajador de deposito";
-            default:
-                alert("Opción inválida. Intente nuevamente.");
-                return this.selectCategory();
+
+            let option = window.prompt("Seleccione su categoría de usuario:\n1. Administrador\n2. Cliente\n3. Vendedor\n4. Trabajador de depósito");
+            
+            switch (option) 
+            {
+                case '1': return "administrador";
+                case '2': return "cliente";
+                case '3': return "vendedor";
+                case '4': return "trabajador de deposito";
+                default:
+                    alert("Opción inválida. Intente nuevamente.");
+            }
         }
     }
 
     AddUserApplicationView()
     {
+        
         let username = window.prompt("Ingrese nombre de usuario:");
         let category = this.selectCategory(); 
-
-        let password = window.prompt(
-        "La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\n" + 
-        "Ingrese la contraseña:");
-
-        if (this._api.validatePass(password))
+        
+        let exit = false;
+        while(!exit)
         {
-            const api_return = this._api.addUser(username, password, category);
-
-            if (api_return.status) {
-                alert("Usuario creado exitosamente");
-            } else {
-                alert("El usuario ya existe");
-            }
-
-            return api_return;
-        }
-        else
-        {
-            alert("Contraseña no válida");
-            return this.show();
+            let password = window.prompt(
+                "La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\n" + 
+                "Ingrese la contraseña:");
+                
+                if (this._api.validatePass(password))
+                {
+                    const api_return = this._api.addUser(username, password, category);
+                    
+                    if (api_return.status) {
+                        alert("Usuario creado exitosamente");
+                    } else {
+                        alert("El usuario ya existe");
+                    }
+                    
+                    return api_return;
+                }
+                else
+                {
+                    alert("Contraseña no válida");
+                }
         }
     }
 
@@ -157,7 +331,6 @@ class ApplicationView
                     if (isNaN(newPrice)) 
                     {
                         alert("Precio inválido");
-                        this.show();
                         break;
                     }
 
@@ -165,7 +338,6 @@ class ApplicationView
                     if (isNaN(newStock)) 
                     {
                         alert("Stock inválido");
-                        this.show();
                         break;
                     }
 
@@ -212,7 +384,7 @@ class ApplicationView
         let exit = false;
         while (!exit) 
         {
-            let option = window.prompt("Menú Administrador:\n1. Cargar nuevo usuario\n2. Ir al menú de artículos\nx. Salir");
+            let option = window.prompt("Menú Administrador:\n1. Cargar nuevo usuario\n2. Ir al menú de artículos\nx. Volver");
 
             switch (option) 
             {
@@ -223,7 +395,6 @@ class ApplicationView
                     this.menuArticleView();
                     break;
                 case 'x':
-                    alert("Saliendo del sistema...");
                     exit = true;
                     break;
                 default:
@@ -333,7 +504,6 @@ class ApplicationView
                     break;
                 default:
                     alert("Opción inválida");
-                    this.menuSalesperson();
                     break;
             }
         }
@@ -343,6 +513,8 @@ class ApplicationView
     {
         this.menuArticleView();
     }
+
+    
 }
 
 export { ApplicationView };
