@@ -206,14 +206,16 @@ class ApplicationView
             let newPassword = window.prompt("La contraseña debe tener entre 8 y 16 caracteres alfanuméricos, al menos una mayúscula y al menos 2 símbolos especiales.\n\nIngrese nueva contraseña:");
             if (this._api.validatePass(newPassword))
             {
-                if (this._api.changePassword(username, newPassword))
+                const api_return = this._api.changePassword(username, newPassword);
+
+                if (this.api_return.status)
                 {
                     alert("Contraseña modificada correctamente");
                     exit = true;
                 }
                 else
                 {
-                    alert("Error al cambiar la contraseña");
+                    alert("Error al cambiar la contraseña. Motivo:" +api_return.result);
                     exit = true;
                 }
             }
@@ -264,7 +266,7 @@ class ApplicationView
                     if (api_return.status) {
                         alert("Usuario creado exitosamente");
                     } else {
-                        alert("El usuario ya existe");
+                        alert("Error al crear el usuario. Motivo: " +api_return.result);
                     }
                     
                     return api_return;

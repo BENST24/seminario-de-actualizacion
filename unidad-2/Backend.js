@@ -7,27 +7,6 @@ class User
 		this.isLocked = false;
         this.category = category;
 	}
-
-	isPasswordCorrect(input) 
-	{
-		return this.password === input;
-	}
-
-	incrementFailedLogin(maxAttempts) 
-	{
-		this.failedLoginCounter++;
-		if (this.failedLoginCounter >= maxAttempts) 
-		{
-			this.isLocked = true;
-		}
-	}
-
-	changePassword(newPassword) 
-	{
-		this.password = newPassword;
-		this.failedLoginCounter = 0;
-		this.isLocked = false;
-	}
 }
 
 class Article
@@ -74,15 +53,16 @@ class APIModelAccess
 		{
 			let user = this._userData.get(username);
 
-			if (user) {
+			if (user) 
+			{
 				if (!user.isLocked) 
 				{
-					if (user.isPasswordCorrect(password))
+					if (this.isPasswordCorrect(user, password))
 					{
 						api_return.status = true;
 					} else 
 					{
-						user.incrementFailedLogin(this._maxLoginFailedAttempts);
+						user.incrementFailedLogin(user, this._maxLoginFailedAttempts);
 						api_return.status = false;
 						api_return.result = user.isLocked ? 'BLOCKED_USER' : 'USER_PASSWORD_FAILED';
 					}
@@ -101,16 +81,29 @@ class APIModelAccess
 
 	changePassword(username, newPassword) 
 	{
+
 		let user = this._userData.get(username);
+
 		if (user) 
 		{
-			user.changePassword(newPassword);
-			return true;
+			if(this.validatePass(newPassword))
+			{
+				user.password = newPassword;
+				user.failedLoginCounter = 0;
+				user.isLocked = false;
+				return { status: true };
+			}
+			else
+			{
+				return { status: false, result: 'INVALID_PASSWORD' };
+			}
 		}
-		return false;
+		else
+		{
+			return { status: false, result: 'USER_DOES_NOT_EXIST' };
+		}
 	}
-
-
+	
     validatePass(pass) 
     {
         let specialCounter = 0;
@@ -134,12 +127,34 @@ class APIModelAccess
         return hasUpper && hasDigit && specialCounter >= 2;
     }
 
+	isPasswordCorrect(user, input) 
+	{
+		return user.password === input;
+	}
+
+	incrementFailedLogin(user, maxAttempts) 
+	{
+		user.failedLoginCounter++;
+		if (user.failedLoginCounter >= maxAttempts) 
+		{
+			user.isLocked = true;
+		}
+	}
+
 	addUser(username, password, category) 
 	{
 		if (!this._userData.has(username)) 
 		{
-			this._userData.set(username, new User(password, category));
-			return { status: true };
+			if(this.validatePass(password))
+			{
+
+				this._userData.set(username, new User(password, category));
+				return { status: true };
+			}
+			else
+			{
+				return { status: false, result: 'INVALID_PASSWORD' };
+			}
 		} else 
 		{
 			return { status: false, result: 'USER_ALREADY_EXISTS' };
