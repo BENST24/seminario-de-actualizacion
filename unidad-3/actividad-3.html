@@ -190,10 +190,9 @@
                             this.btnSignUpPremium.classList.add("w3-button", "w3-green", "w3-padding-large");
                             this.btnSignUpPremium.innerText = "Sign Up";
 
-            }
-
-            connectedCallback()
-            {
+                
+                // armado de estructura
+                
                 // Titulo
                 this.divTitle.appendChild(this.h2Title);
                 this.appendChild(this.divTitle);
@@ -290,6 +289,10 @@
 
 
                 this.appendChild(this.containerCards);
+            }
+
+            connectedCallback()
+            {
 
             }
         }

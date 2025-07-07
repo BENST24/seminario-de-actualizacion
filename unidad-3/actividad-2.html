@@ -87,10 +87,8 @@
                 this.btnLogin.classList.add("w3-button", "w3-section", "w3-teal", "w3-ripple");
                 this.btnLogin.innerText = "Log in";
 
-            }
+                // armado de estructura
 
-            connectedCallback()
-            {
                 this.header.appendChild(this.h1TitleHeader);
                 this.appendChild(this.header);
 
@@ -124,6 +122,11 @@
                 this.divContainer.appendChild(this.formContainer);
                 
                 this.appendChild(this.divContainer);
+
+            }
+
+            connectedCallback()
+            {
             }
         }
 

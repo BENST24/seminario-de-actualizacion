@@ -135,6 +135,51 @@
 			this.btnClear.innerText = 'Borrar';
 			this.btnClear.classList.add("buttonClear");
 
+
+			// armado de estructura
+
+			// Fila 1: Display
+			let row1 = this.table.insertRow();
+			let cell1 = row1.insertCell();
+			cell1.colSpan = 4;
+			cell1.appendChild(this.display);
+
+			// Fila 2: 7 8 9 /
+			let row2 = this.table.insertRow();
+			row2.insertCell().appendChild(this.btn7);
+			row2.insertCell().appendChild(this.btn8);
+			row2.insertCell().appendChild(this.btn9);
+			row2.insertCell().appendChild(this.btnDivision);
+
+			// Fila 3: 4 5 6 *
+			let row3 = this.table.insertRow();
+			row3.insertCell().appendChild(this.btn4);
+			row3.insertCell().appendChild(this.btn5);
+			row3.insertCell().appendChild(this.btn6);
+			row3.insertCell().appendChild(this.btnMultiplication);
+
+			// Fila 4: 1 2 3 -
+			let row4 = this.table.insertRow();
+			row4.insertCell().appendChild(this.btn1);
+			row4.insertCell().appendChild(this.btn2);
+			row4.insertCell().appendChild(this.btn3);
+			row4.insertCell().appendChild(this.btnSub);
+
+			// Fila 5: 0 . = +
+			let row5 = this.table.insertRow();
+			row5.insertCell().appendChild(this.btn0);
+			row5.insertCell().appendChild(this.btnPoint);
+			row5.insertCell().appendChild(this.btnCalculate);
+			row5.insertCell().appendChild(this.btnPlus);
+
+			// Fila 6: AC (ocupa 4 columnas)
+			let row6 = this.table.insertRow();
+			let acCell = row6.insertCell();
+			acCell.colSpan = 4;
+			acCell.appendChild(this.btnClear);
+
+			this.appendChild(this.table);
+
 		}
 
 		onButtonCalculateClick(event)
@@ -235,48 +280,6 @@
 			//Se va a ejecutar siempre cuando el elemento es insertado en el DOM
 			//DOM = Arbol de elementos HTML ya como instancias (objetos) de JS.
 
-			this.appendChild(this.table);
-
-			// Fila 1: Display
-			let row1 = this.table.insertRow();
-			let cell1 = row1.insertCell();
-			cell1.colSpan = 4;
-			cell1.appendChild(this.display);
-
-			// Fila 2: 7 8 9 /
-			let row2 = this.table.insertRow();
-			row2.insertCell().appendChild(this.btn7);
-			row2.insertCell().appendChild(this.btn8);
-			row2.insertCell().appendChild(this.btn9);
-			row2.insertCell().appendChild(this.btnDivision);
-
-			// Fila 3: 4 5 6 *
-			let row3 = this.table.insertRow();
-			row3.insertCell().appendChild(this.btn4);
-			row3.insertCell().appendChild(this.btn5);
-			row3.insertCell().appendChild(this.btn6);
-			row3.insertCell().appendChild(this.btnMultiplication);
-
-			// Fila 4: 1 2 3 -
-			let row4 = this.table.insertRow();
-			row4.insertCell().appendChild(this.btn1);
-			row4.insertCell().appendChild(this.btn2);
-			row4.insertCell().appendChild(this.btn3);
-			row4.insertCell().appendChild(this.btnSub);
-
-			// Fila 5: 0 . = +
-			let row5 = this.table.insertRow();
-			row5.insertCell().appendChild(this.btn0);
-			row5.insertCell().appendChild(this.btnPoint);
-			row5.insertCell().appendChild(this.btnCalculate);
-			row5.insertCell().appendChild(this.btnPlus);
-
-			// Fila 6: AC (ocupa 4 columnas)
-			let row6 = this.table.insertRow();
-			let acCell = row6.insertCell();
-			acCell.colSpan = 4;
-			acCell.appendChild(this.btnClear);
-
 			this.btn1.onclick = this.onButton1Click.bind(this);
 			this.btn2.onclick = this.onButton2Click.bind(this);
 			this.btn3.onclick = this.onButton3Click.bind(this);
@@ -294,11 +297,32 @@
 			this.btnPlus.onclick = this.onButtonPlusClick.bind(this);
 			this.btnCalculate.onclick = this.onButtonCalculateClick.bind(this);
 			this.btnClear.onclick = this.onButtonClearClick.bind(this);
+
+
 		}
 
 		disconnectedCallback()
 		{
 			//Se va a ejecutar siempre que se quite el elemento del documento
+
+			this.btn1.onclick = null;
+			this.btn2.onclick = null;
+			this.btn3.onclick = null;
+			this.btn4.onclick = null;
+			this.btn5.onclick = null;
+			this.btn6.onclick = null;
+			this.btn7.onclick = null;
+			this.btn8.onclick = null;
+			this.btn9.onclick = null;
+			this.btn0.onclick = null;
+			this.btnPoint.onclick = null;
+			this.btnDivision.onclick = null;
+			this.btnMultiplication.onclick = null;
+			this.btnSub.onclick = null;
+			this.btnPlus.onclick = null;
+			this.btnCalculate.onclick = null;
+			this.btnClear.onclick = null;
+
 		}
 
 		adoptedCallback()
