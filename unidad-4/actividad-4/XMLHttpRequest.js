@@ -1,0 +1,74 @@
+import { Table } from "./Table.js";
+
+class XMLHttpRequestExample extends HTMLElement
+{
+    constructor()
+    {
+        super();
+        this.requestBtn = document.createElement("button");
+        this.clearBtn = document.createElement("button");
+        // this.table = document.createElement('x-table');
+        this.table = new Table();
+
+        this.requestBtn.innerText = "Efecuar peticion";
+        this.clearBtn.innerText = "Limpiar";
+
+        this.appendChild(this.requestBtn);
+        this.appendChild(this.clearBtn); 
+        this.appendChild(this.table);
+    }
+
+    onClearButtonClick(event)
+    {
+        this.table.clearTable();
+		// this.outputTextArea.value = '';
+	}
+
+    onRequestButtonClick(event)
+    {
+        const xhr = new XMLHttpRequest();
+
+        xhr.onload = (event) => 
+        {
+            if (xhr.readyState === 4 && xhr.status === 200 ) 
+            {
+                let data = JSON.parse(xhr.responseText);
+                this.table.setData(data);
+            }
+            else 
+            {
+                console.error(xhr.statusText);
+            }
+            
+            //Simulación
+            setTimeout(() => { this.requestBtn.disabled = false }, 2000);
+        }
+
+        xhr.onerror = (event) => 
+        {
+            console.error(xhr.statusText);
+            this.requestBtn.disabled = false;
+        };
+        
+        xhr.open('GET', 'https://jsonplaceholder.typicode.com/users/');
+        xhr.send();      
+        this.requestBtn.disabled = true;
+    
+    }
+
+    connectedCallback()
+    {
+        this.requestBtn.onclick = this.onRequestButtonClick.bind(this);
+        this.clearBtn.onclick = this.onClearButtonClick.bind(this);
+    }
+
+    disconnectredCallback()
+    {
+        this.requestBtn.onclick = null;
+        this.clearBtn.onclick = null;
+    }
+}
+
+customElements.define('x-request', XMLHttpRequestExample );
+
+export { XMLHttpRequestExample };
