@@ -8,11 +8,11 @@ class Table extends HTMLElement
 
         // Crear thead y encabezado
         this.thead = document.createElement("thead");
-        let headerRow = document.createElement("tr");
+        let headerRow = this.thead.insertRow();
         ["ID", "Usuario", "Nombre", "Correo", "Web", "Telefono"].forEach(text => {
-            let th = document.createElement("th");
-            th.innerText = text;
-            headerRow.appendChild(th);
+            let cell = headerRow.insertCell();
+            cell.innerText = text;
+            headerRow.appendChild(cell);
         });
         this.thead.appendChild(headerRow);
         this.table.appendChild(this.thead);
@@ -39,7 +39,8 @@ class Table extends HTMLElement
         // Celda de correo con clase personalizada
         let emailCell = row.insertCell();
         emailCell.innerText = data.email;
-        emailCell.classList.add("w3-tag", "w3-blue");
+        emailCell.classList.add("w3-tag", "w3-blue", "w3-round");
+        emailCell.style = "padding:3px"
 
         row.insertCell().innerText = data.website;
         row.insertCell().innerText = data.phone;
@@ -47,7 +48,7 @@ class Table extends HTMLElement
 
     setData(array)
     {
-        this.tbody.innerHTML = "";
+        this.tbody.textContent = "";
         array.forEach(function(item) 
         {
             this.insertRow(item);
@@ -56,7 +57,7 @@ class Table extends HTMLElement
 
     clearTable()
     {
-        this.tbody.innerHTML = "";
+        this.tbody.textContent = "";
     }
 }
 

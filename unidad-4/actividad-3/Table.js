@@ -8,11 +8,11 @@ class Table extends HTMLElement
 
         // Crear thead y encabezado
         this.thead = document.createElement("thead");
-        let headerRow = document.createElement("tr");
+        let headerRow = this.thead.insertRow();
         ["userId", "id", "title", "body"].forEach(text => {
-            let th = document.createElement("th");
-            th.innerText = text;
-            headerRow.appendChild(th);
+            let cell = headerRow.insertCell();
+            cell.innerText = text;
+            headerRow.appendChild(cell);
         });
         this.thead.appendChild(headerRow);
         this.table.appendChild(this.thead);
@@ -40,6 +40,11 @@ class Table extends HTMLElement
         {
             this.insertRow(item);
         }.bind(this));
+    }
+
+        clearTable()
+    {
+        this.tbody.textContent = "";
     }
 }
 

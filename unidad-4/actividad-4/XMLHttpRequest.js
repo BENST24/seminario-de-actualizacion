@@ -21,7 +21,6 @@ class XMLHttpRequestExample extends HTMLElement
     onClearButtonClick(event)
     {
         this.table.clearTable();
-		// this.outputTextArea.value = '';
 	}
 
     onRequestButtonClick(event)
