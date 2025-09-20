@@ -1,8 +1,12 @@
+import { ControllerRequestEndpoint } from "./ControllerRequestEndpoint.js";
+
 class WCModalDialogWindow extends HTMLElement 
 {
     constructor() 
     {
         super();
+
+        this.controllerRequest = new ControllerRequestEndpoint();
 
         this.data = null;
         this.dialog = document.createElement('dialog');
@@ -34,16 +38,21 @@ class WCModalDialogWindow extends HTMLElement
     }
 
     async loadUser(userId)
-    {
-        let response = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`);
-        let response_json = await response.json();
-      
-        this.data = response_json;
+    { 
+        try 
+        {   
+            this.data = await this.controllerRequest.requestDataDodalDialog(userId);
 
-        this.divUser.innerText = `Usuario: ${this.data.username}\nID: ${this.data.id}\nNombre: ${this.data.name}`;
-        this.divAdddress.innerText = `Direccion:\nCalle: ${this.data.address.street}\nCiudad: ${this.data.address.city}\nCodigo Postal: ${this.data.address.zipcode}`;
-        this.company.innerText = `Compañia:\nNombre: ${this.data.company.name}\nEslogan: ${this.data.company.catchPhrase}\nBS: ${this.data.company.bs}`;
-
+            console.log(this.data);
+            this.divUser.innerText = `Usuario: ${this.data.username}\nID: ${this.data.id}\nNombre: ${this.data.name}`;
+            this.divAdddress.innerText = `Direccion:\nCalle: ${this.data.address.street}\nCiudad: ${this.data.address.city}\nCodigo Postal: ${this.data.address.zipcode}`;
+            this.company.innerText = `Compañia:\nNombre: ${this.data.company.name}\nEslogan: ${this.data.company.catchPhrase}\nBS: ${this.data.company.bs}`;
+        }
+        catch (err)
+        {
+            window.alert("Error al cargar los datos de usuario");
+            console.error("Error en la peticion", err);
+        }
     }
     
     open(userId) 
