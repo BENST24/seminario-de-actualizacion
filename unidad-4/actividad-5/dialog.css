@@ -1,0 +1,16 @@
+dialog.wc-modal::backdrop {
+  background: rgba(0,0,0,0.3);
+}
+
+dialog.wc-modal {
+  position: fixed;     /* para poder moverlo */
+  top: 15%;            /* lo subís (ajustá a tu gusto: 10%, 15%, 20% ...) */
+  left: 50%;           /* centrado horizontal */
+  transform: translateX(-50%);  /* corrige el centrado horizontal */
+  margin: 0;           /* elimina el centrado automático del UA */
+
+    /* quitar borde y fondo por defecto */
+  /* border: none; */
+  padding: 0.5em;
+  /* background: transparent; */
+}

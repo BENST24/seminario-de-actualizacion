@@ -50,7 +50,7 @@ class WCTable extends HTMLElement
         row.addEventListener("click", () => {
             // Crear el modal pasando el id
             const modal = new WCModalDialogWindow();
-            document.body.appendChild(this.modal);
+            document.body.appendChild(modal);
             modal.open(data.id);
         });
     }
